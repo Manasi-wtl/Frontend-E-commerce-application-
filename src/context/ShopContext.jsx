@@ -95,6 +95,8 @@ const ShopContextProvider = (props) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [products, setProducts] = useState([])
   const [token, setToken] = useState('')
+  const [orderData, setOrderData] = useState(null);
+  const [currency, setCurrency] = useState("Rs");
 
 
 

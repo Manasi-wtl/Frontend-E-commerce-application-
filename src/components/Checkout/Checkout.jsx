@@ -2,10 +2,12 @@ import React, { useContext, useState } from "react";
 import { ShopContext } from "../../context/ShopContext";
 import razorpay from "../Assets/razorpay_logo.png";
 import stripe from "../Assets/stripe_logo.png";
-import './Checkout.css';
+import { useNavigate } from "react-router-dom";
+import "./Checkout.css";
 
 const Checkout = () => {
-  const { cartItems, getTotalCartAmount } = useContext(ShopContext);
+  const { cartItems, getTotalCartAmount, setOrderData } = useContext(ShopContext);
+  const navigate = useNavigate()
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -15,14 +17,18 @@ const Checkout = () => {
     country: "",
     state: "",
     phone: "",
+    email: "",
   });
 
-  // Delivery charge (can also be passed from context if dynamic)
-  const delivery_free = 0; // Fixed delivery charge, can be dynamic if needed
+  const [selectedPayment, setSelectedPayment] = useState(""); // Track selected payment option
 
-  // Calculate the subtotal and total amount (cart total + delivery charge)
+  const deliveryFree = 0; // Fixed delivery charge
   const subtotal = getTotalCartAmount();
-  const totalAmount = subtotal + delivery_free;
+  const totalAmount = subtotal + deliveryFree;
+
+  const handlePaymentSelect = (payment) => {
+    setSelectedPayment(payment);
+  };
 
   const onChangeHandler = (event) => {
     const { name, value } = event.target;
@@ -33,143 +39,162 @@ const Checkout = () => {
     event.preventDefault();
 
     try {
-      let orderData = {
+      const orderData = {
         address: formData,
-        amount: totalAmount, // Pass total amount including delivery fee
+        amount: totalAmount,
+        paymentMethod: selectedPayment,
+        items: cartItems
       };
+      setOrderData(orderData)
+      navigate('/orders')
 
-      // Process the order here...
       console.log(orderData);
-
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
   return (
     <form className="form-container" onSubmit={onSubmitHandler}>
+      {/* Left Section: Shipping Address and Payment Method */}
       <div className="form-left">
-        {/* Payment Options */}
-        <fieldset className="payment-method">
-          <legend>Payment Options</legend>
-          <div className="payment-option">
-            <div className="payment-option selected">
+        {/* Payment Method */}
+        <div className="payment-method">
+          <h2 className="section-title">Payment Options</h2>
+          <div className="payment-options">
+            <div
+              className={`payment-option ${
+                selectedPayment === "stripe" ? "selected" : ""
+              }`}
+              onClick={() => handlePaymentSelect("stripe")}
+            >
               <img src={stripe} alt="Stripe" className="payment-logo" />
+              <span className="payment-text">Stripe</span>
             </div>
-            <div className="payment-option selected">
+            <div
+              className={`payment-option ${
+                selectedPayment === "razorpay" ? "selected" : ""
+              }`}
+              onClick={() => handlePaymentSelect("razorpay")}
+            >
               <img src={razorpay} alt="Razorpay" className="payment-logo" />
+              <span className="payment-text">Razorpay</span>
             </div>
-            <div className="payment-option">
-              <span className="payment-text">CASH ON DELIVERY</span>
+            <div
+              className={`payment-option ${
+                selectedPayment === "cod" ? "selected" : ""
+              }`}
+              onClick={() => handlePaymentSelect("cod")}
+            >
+              <span className="payment-text">Cash on Delivery</span>
             </div>
           </div>
-        </fieldset>
+        </div>
 
         {/* Shipping Address */}
-        <div className="form-title">
-          <h2>Shipping Address</h2>
-        </div>
-        <div className="form-row">
+        <div className="shipping-address">
+          <h2 className="section-title">Shipping Address</h2>
+          <div className="form-row">
+            <input
+              type="text"
+              name="firstName"
+              value={formData.firstName}
+              className="form-input"
+              placeholder="First Name"
+              onChange={onChangeHandler}
+            />
+            <input
+              type="text"
+              name="lastName"
+              value={formData.lastName}
+              className="form-input"
+              placeholder="Last Name"
+              onChange={onChangeHandler}
+            />
+          </div>
           <input
-            type="text"
-            name="firstName"
-            value={formData.firstName}
+            type="email"
+            name="email"
+            value={formData.email}
             className="form-input"
-            placeholder="First Name"
+            placeholder="Email Address"
+            onChange={onChangeHandler}
+          />
+          <input
+            type="tel"
+            name="phone"
+            value={formData.phone}
+            className="form-input"
+            placeholder="Phone Number"
             onChange={onChangeHandler}
           />
           <input
             type="text"
-            name="lastName"
-            value={formData.lastName}
+            name="street"
+            value={formData.street}
             className="form-input"
-            placeholder="Last Name"
+            placeholder="Street Address"
             onChange={onChangeHandler}
           />
-        </div>
-        <input
-          type="email"
-          name="email"
-          value={formData.email}
-          className="form-input"
-          placeholder="Email Address"
-          onChange={onChangeHandler}
-        />
-        <input
-          type="phone"
-          name="phone"
-          value={formData.phone}
-          className="form-input"
-          placeholder="Phone Number"
-          onChange={onChangeHandler}
-        />
-        <input
-          type="text"
-          name="street"
-          value={formData.street}
-          className="form-input"
-          placeholder="Street Address"
-          onChange={onChangeHandler}
-        />
-        <div className="form-row">
-          <input
-            type="text"
-            name="city"
-            value={formData.city}
-            className="form-input"
-            placeholder="City"
-            onChange={onChangeHandler}
-          />
-          <input
-            type="text"
-            name="state"
-            value={formData.state}
-            className="form-input"
-            placeholder="State"
-            onChange={onChangeHandler}
-          />
-        </div>
-        <div className="form-row">
-          <input
-            type="text"
-            name="zipcode"
-            value={formData.zipcode}
-            className="form-input"
-            placeholder="Zipcode"
-            onChange={onChangeHandler}
-          />
-          <input
-            type="text"
-            name="country"
-            value={formData.country}
-            className="form-input"
-            placeholder="Country"
-            onChange={onChangeHandler}
-          />
+          <div className="form-row">
+            <input
+              type="text"
+              name="city"
+              value={formData.city}
+              className="form-input"
+              placeholder="City"
+              onChange={onChangeHandler}
+            />
+            <input
+              type="text"
+              name="state"
+              value={formData.state}
+              className="form-input"
+              placeholder="State"
+              onChange={onChangeHandler}
+            />
+          </div>
+          <div className="form-row">
+            <input
+              type="text"
+              name="zipcode"
+              value={formData.zipcode}
+              className="form-input"
+              placeholder="Zipcode"
+              onChange={onChangeHandler}
+            />
+            <input
+              type="text"
+              name="country"
+              value={formData.country}
+              className="form-input"
+              placeholder="Country"
+              onChange={onChangeHandler}
+            />
+          </div>
         </div>
       </div>
 
-      {/* Cart Totals */}
+      {/* Right Section: Cart Totals */}
       <div className="form-right">
         <div className="cart-total">
-          <h3>Cart Totals</h3>
+          <h2>Cart Totals</h2>
           <div className="cart-total-item">
-            <span>Subtotal: </span>
-            <span> Rs {subtotal} </span>
+            <span>Subtotal:</span>
+            <span>Rs {subtotal}</span>
           </div>
           <div className="cart-total-item">
-            <span>Shipping Fee: </span>
-            <span> Rs {delivery_free} </span>
+            <span>Shipping Fee:</span>
+            <span>Rs {deliveryFree}</span>
           </div>
           <div className="cart-total-item">
-            <span>Total: </span>
-            <span> Rs {totalAmount} </span>
+            <span>Total:</span>
+            <span>Rs {totalAmount}</span>
           </div>
         </div>
-
-        <div className="form-submit">
-          <button type="submit" className="submit-button">PLACE ORDER</button>
-        </div>
+        <button type="submit" className="submit-button" onClick={() =>navigate('/orders')}>
+          PLACE ORDER
+        </button>
       </div>
     </form>
   );
