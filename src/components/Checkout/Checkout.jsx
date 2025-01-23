@@ -2,12 +2,18 @@ import React, { useContext, useState } from "react";
 import { ShopContext } from "../../context/ShopContext";
 import razorpay from "../Assets/razorpay_logo.png";
 import stripe from "../Assets/stripe_logo.png";
-import { useNavigate } from "react-router-dom";
-import "./Checkout.css";
+import './Checkout.css';
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import axios from "axios";
+import { BASEURL } from "../../config";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 const Checkout = () => {
-  const { cartItems, getTotalCartAmount, setOrderData } = useContext(ShopContext);
-  const navigate = useNavigate()
+  const navigate = useNavigate(); // Initialize navigate
+  const [method, setMethod] = useState('Cash on Delivery');
+
+  const { cartItems, delivery_fee, setCartItems,getTotalCartAmount, products,token } = useContext(ShopContext);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -17,187 +23,265 @@ const Checkout = () => {
     country: "",
     state: "",
     phone: "",
-    email: "",
   });
 
-  const [selectedPayment, setSelectedPayment] = useState(""); // Track selected payment option
+  // // Delivery charge (can also be passed from context if dynamic)
+  // const delivery_free = 0; // Fixed delivery charge, can be dynamic if needed
 
-  const deliveryFree = 0; // Fixed delivery charge
+  // // Calculate the subtotal and total amount (cart total + delivery charge)
   const subtotal = getTotalCartAmount();
-  const totalAmount = subtotal + deliveryFree;
-
-  const handlePaymentSelect = (payment) => {
-    setSelectedPayment(payment);
-  };
+  const totalAmount = subtotal + delivery_fee;
 
   const onChangeHandler = (event) => {
     const { name, value } = event.target;
     setFormData((data) => ({ ...data, [name]: value }));
   };
 
-  const onSubmitHandler = (event) => {
+  const onSubmitHandler = async (event) => {
     event.preventDefault();
-
+    console.log(products)
+    console.log(cartItems)
+    console.log(token)
     try {
-      const orderData = {
-        address: formData,
-        amount: totalAmount,
-        paymentMethod: selectedPayment,
-        items: cartItems
-      };
-      setOrderData(orderData)
-      navigate('/orders')
 
-      console.log(orderData);
+      const token = localStorage.getItem('token'); // Get token from storage
+      console.log(token)
+    if (!token) {
+      toast.error("You are not authorized. Please log in.");
+      // Optional: Redirect to login
+      window.location.href = '/login';
+      return;
+    }
+      // let orderItems = [];
+
+      // for (const items in cartItems) {
+      //   for (const item in cartItems[items]) {
+      //     if (cartItems[items][item] > 0) {
+      //       const itemInfo = structuredClone(
+      //         products.find((product) => product._id === items)
+      //       );
+      //       if (itemInfo) {
+      //         itemInfo.size = item;
+      //         itemInfo.quantity = cartItems[items][item];
+      //         orderItems.push(itemInfo);
+      //       }
+      //     }
+      //   }
+      // }
+
+
+      // const { items } = cartItems;
+  // let orderItems = [];
+
+  // try {
+    // Ensure cartItems exists and is an array
+    if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {
+      console.error("Cart is empty or invalid.");
+      toast.error("Your cart is empty!");
+      return;
+    }
+
+    // Prepare order items
+    let orderItems = cartItems.map((cartItem) => {
+      // Find the corresponding product in the products array
+      const product = products.find((p) => p._id === cartItem.productId);
+
+      if (!product) {
+        console.warn(`Product not found for productId: ${cartItem.productId}`);
+        return null; // Skip items without matching products
+      }
+
+      // Create order item with additional details
+      return {
+        productId: cartItem.productId, // Correct syntax
+        size: cartItem.size,
+        quantity: cartItem.quantity,
+      };
+    }).filter((item) => item !== null); // Remove null items
+
+    // Check if orderItems is empty
+    if (orderItems.length === 0) {
+      toast.error("No valid products found in cart.");
+      return;
+    }
+
+      let orderData = {
+        address: formData,
+        items: orderItems,
+        totalAmount: getTotalCartAmount() + delivery_fee,
+        paymentMethod: method
+      };
+      console.log("order data",orderData)
+
+      switch (method) {
+        // api call for cod
+        case "Cash on Delivery":
+
+            const response = await axios.post(
+              BASEURL + "/api/orders/place",
+              orderData,
+              { headers: { Authorization:` Bearer ${token}` } }
+            );
+            console.log(response.data.success)
+          
+          if (response.data.success) {
+            setCartItems([]);
+            navigate("/orderItems");
+            console.log("orderData:",orderData.items)
+          
+          } else {
+            toast.error(response.data.message);
+          }
+        
+
+          break;
+
+          case 'Stripe' :
+            const responseStripe = await axios.post(BASEURL + '/api/orders/stripe',orderData,{ headers: { Authorization:` Bearer ${token}` } })
+            if(responseStripe.data.success){
+              const {session_url} = responseStripe.data
+              window.location.replace(session_url)
+            } else {
+              toast.error(responseStripe.data.message)
+            }
+          break;
+        default:
+          break;
+      }
+      console.log(orderData)
     } catch (error) {
-      console.error(error);
+      console.log(error);
+      toast.error(error.message)
     }
   };
 
   return (
     <form className="form-container" onSubmit={onSubmitHandler}>
-      {/* Left Section: Shipping Address and Payment Method */}
       <div className="form-left">
-        {/* Payment Method */}
-        <div className="payment-method">
-          <h2 className="section-title">Payment Options</h2>
-          <div className="payment-options">
-            <div
-              className={`payment-option ${
-                selectedPayment === "stripe" ? "selected" : ""
-              }`}
-              onClick={() => handlePaymentSelect("stripe")}
-            >
+        {/* Payment Options */}
+        <fieldset className="payment-method">
+          <legend>Payment Options</legend>
+          <div className="payment-option">
+            <div className="payment-option selected">
               <img src={stripe} alt="Stripe" className="payment-logo" />
-              <span className="payment-text">Stripe</span>
             </div>
-            <div
-              className={`payment-option ${
-                selectedPayment === "razorpay" ? "selected" : ""
-              }`}
-              onClick={() => handlePaymentSelect("razorpay")}
-            >
+            <div className="payment-option selected">
               <img src={razorpay} alt="Razorpay" className="payment-logo" />
-              <span className="payment-text">Razorpay</span>
             </div>
-            <div
-              className={`payment-option ${
-                selectedPayment === "cod" ? "selected" : ""
-              }`}
-              onClick={() => handlePaymentSelect("cod")}
-            >
-              <span className="payment-text">Cash on Delivery</span>
+            <div onClick={() => setMethod("Cash on Delivery")} className="payment-option">
+              <span className="payment-text">CASH ON DELIVERY</span>
             </div>
           </div>
-        </div>
+        </fieldset>
 
         {/* Shipping Address */}
-        <div className="shipping-address">
-          <h2 className="section-title">Shipping Address</h2>
-          <div className="form-row">
-            <input
-              type="text"
-              name="firstName"
-              value={formData.firstName}
-              className="form-input"
-              placeholder="First Name"
-              onChange={onChangeHandler}
-            />
-            <input
-              type="text"
-              name="lastName"
-              value={formData.lastName}
-              className="form-input"
-              placeholder="Last Name"
-              onChange={onChangeHandler}
-            />
-          </div>
+        <div className="form-title">
+          <h2>Shipping Address</h2>
+        </div>
+        <div className="form-row">
           <input
-            type="email"
-            name="email"
-            value={formData.email}
+            type="text"
+            name="firstName"
+            value={formData.firstName}
             className="form-input"
-            placeholder="Email Address"
-            onChange={onChangeHandler}
-          />
-          <input
-            type="tel"
-            name="phone"
-            value={formData.phone}
-            className="form-input"
-            placeholder="Phone Number"
+            placeholder="First Name"
             onChange={onChangeHandler}
           />
           <input
             type="text"
-            name="street"
-            value={formData.street}
+            name="lastName"
+            value={formData.lastName}
             className="form-input"
-            placeholder="Street Address"
+            placeholder="Last Name"
             onChange={onChangeHandler}
           />
-          <div className="form-row">
-            <input
-              type="text"
-              name="city"
-              value={formData.city}
-              className="form-input"
-              placeholder="City"
-              onChange={onChangeHandler}
-            />
-            <input
-              type="text"
-              name="state"
-              value={formData.state}
-              className="form-input"
-              placeholder="State"
-              onChange={onChangeHandler}
-            />
-          </div>
-          <div className="form-row">
-            <input
-              type="text"
-              name="zipcode"
-              value={formData.zipcode}
-              className="form-input"
-              placeholder="Zipcode"
-              onChange={onChangeHandler}
-            />
-            <input
-              type="text"
-              name="country"
-              value={formData.country}
-              className="form-input"
-              placeholder="Country"
-              onChange={onChangeHandler}
-            />
-          </div>
+        </div>
+        <input
+          type="email"
+          name="email"
+          value={formData.email}
+          className="form-input"
+          placeholder="Email Address"
+          onChange={onChangeHandler}
+        />
+        <input
+          type="phone"
+          name="phone"
+          value={formData.phone}
+          className="form-input"
+          placeholder="Phone Number"
+          onChange={onChangeHandler}
+        />
+        <input
+          type="text"
+          name="street"
+          value={formData.street}
+          className="form-input"
+          placeholder="Street Address"
+          onChange={onChangeHandler}
+        />
+        <div className="form-row">
+          <input
+            type="text"
+            name="city"
+            value={formData.city}
+            className="form-input"
+            placeholder="City"
+            onChange={onChangeHandler}
+          />
+          <input
+            type="text"
+            name="state"
+            value={formData.state}
+            className="form-input"
+            placeholder="State"
+            onChange={onChangeHandler}
+          />
+        </div>
+        <div className="form-row">
+          <input
+            type="text"
+            name="zipcode"
+            value={formData.zipcode}
+            className="form-input"
+            placeholder="Zipcode"
+            onChange={onChangeHandler}
+          />
+          <input
+            type="text"
+            name="country"
+            value={formData.country}
+            className="form-input"
+            placeholder="Country"
+            onChange={onChangeHandler}
+          />
         </div>
       </div>
 
-      {/* Right Section: Cart Totals */}
+      {/* Cart Totals */}
       <div className="form-right">
         <div className="cart-total">
-          <h2>Cart Totals</h2>
+          <h3>Cart Totals</h3>
           <div className="cart-total-item">
-            <span>Subtotal:</span>
-            <span>Rs {subtotal}</span>
+            <span>Subtotal: </span>
+            <span> Rs {subtotal} </span>
           </div>
           <div className="cart-total-item">
-            <span>Shipping Fee:</span>
-            <span>Rs {deliveryFree}</span>
+            <span>Shipping Fee: </span>
+            <span> Rs {delivery_fee} </span>
           </div>
           <div className="cart-total-item">
-            <span>Total:</span>
-            <span>Rs {totalAmount}</span>
+            <span>Total: </span>
+            <span> Rs {totalAmount} </span>
           </div>
         </div>
-        <button type="submit" className="submit-button" onClick={() =>navigate('/orders')}>
-          PLACE ORDER
-        </button>
+
+        <div className="form-submit">
+          <button type="submit" className="submit-button">PLACE ORDER</button>
+        </div>
       </div>
     </form>
   );
 };
 
-export default Checkout;
+export default Checkout

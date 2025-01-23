@@ -19,6 +19,10 @@ import Mens from "./pages/Mens";
 import Women from "./pages/Women";
 import Kids from "./pages/Kids";
 
+import { ToastContainer } from 'react-toastify';
+import "react-toastify/dist/ReactToastify.css"; // Import the styles for toast notifications
+import OrderItems from './components/OrderItems/OrderItems';
+
 function App() {
   return (
     <BrowserRouter>
@@ -43,9 +47,11 @@ function AppContent() {
         <Route path="/login" element={<Login />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/admin" element={<AdminPage />} />
+        <Route path='/orderItems' element={<OrderItems/>}/>
       </Routes>
 
       <Footer />
+      <ToastContainer />
     </div>
   );
 }

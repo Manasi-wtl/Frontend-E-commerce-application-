@@ -1,91 +1,106 @@
-// import React, { useContext } from "react";
-// import { ShopContext } from "../context/ShopContext";
+// import React, { useState, useEffect } from 'react'
+// import axios from 'axios'
+// // import { backendUrl, currency } from '../App'
+// import { toast } from 'react-toastify'
+// import { assets } from '../assets/assets'
 
-// const Orders = () => {
-//   const { products, currency } = useContext(ShopContext);
 
-//   // Ensure products is an array before using slice
-//   const orderItems = Array.isArray(products) ? products.slice(1, 4) : [];
+// const Orders = ({ token }) => {
+
+
+//   const [orders, setOrders] = useState([])
+
+//   const fetchAllOrders = async () => {
+
+//     if (!token) {
+//       return null
+//     }
+//     try {
+
+//       const response = await axios.post(backendUrl + '/api/order/list', {}, { headers: { token } })
+//       // console.log(response)
+//       if(response.data.success){
+//       setOrders(response.data.orders.reverse())
+//       }
+//       else{
+//         toast.error({success:false, message:error.message})
+//       }
+
+//     } catch (error) {
+//       console.log(error)
+//       toast.error(error.message)
+//     }
+
+//   }
+
+//   useEffect(() => {
+//     fetchAllOrders()
+//     console.log(orders)
+//   }, [token])
+
+
+//   const statusHandler = async (event, orderId) => {
+//     try {
+      
+//       const response = await axios.post(backendUrl + '/api/order/status', {orderId, status:event.target.value}, {headers:{token}})
+//       await fetchAllOrders()
+
+//     } catch (error) {
+//       console.log(error)
+//       toast.error(error.message)
+//     }
+//   }
+
 
 //   return (
-//     <div className="border-t pt-16">
-//       <div className="text-2xl">
-//         <h1>MY ORDERS</h1>
-//       </div>
-
+//     <div>
+//       <h3>Order Page</h3>
 //       <div>
-//         {orderItems.map((item, index) => (
-//           <div
-//             key={index}
-//             className="py-4 border-t border-b text-gray-700 flex flex-col md:flex-row md:items-center md:justify-between gap-4"
-//           >
-//             <div className="flex items-start gap-6 text-sm">
-//               <img className="w-16 sm:w-20" src={item.image[0]} alt="" />
+//         {
+//           orders.map((order, index) => (
+//             <div className='grid grid-cols-1 sm:grid-cols-[0.5fr_2fr_1fr] lg:grid-cols-[0.5fr_2fr_1fr_1fr_1fr] gap-3 items-start border-2 border-gray-200 p-5 md:p-8 my-3 md:my-4 text-xs sm:text-sm' key={index}>
+//               <img className='w-12' src={assets.parcel_icon} alt="" />
 //               <div>
-//                 <p className="sm:text-base font-medium">{item.name}</p>
-//                 <div className="flex items-center gap-3 mt-2 text-base text-gray-700">
-//                   <p className="text-lg">
-//                     {currency}
-//                     {item.price}
-//                   </p>
-//                   <p>Quantity: 1</p>
-//                   <p>Size: M</p>
+//                 <div>
+//                   {
+//                     order.items.map((item, index) => {
+//                       if (index === order.items.length - 1) {
+//                         return <p className=' py-0.5' key={index}>{item.name} x {item.quntity} <span>{item.size}</span></p>
+//                       }
+//                       else {
+//                         return <p className='py-0.5' key={index}>{item.name} x {item.quntity} <span>{item.size} ,</span></p>
+//                       }
+//                     })
+//                   }
 //                 </div>
-//                 <p className="mt-2">
-//                   Date: <span className="text-gray-400">25, July, 2024</span>
-//                 </p>
+//                 <p className='mt-3 mb-2 font-medium'>{order.address.firstName + " " + order.address.lastName}</p>
+//                 <div>
+//                   <p>{order.address.street + ","}</p>
+//                   <p>{order.address.city + "," + order.address.state + "," + order.address.country + "," + order.address.zipcode}</p>
+//                 </div>
+//                 <p>{order.address.phone}</p>
 //               </div>
-//             </div>
-//             <div className="md:w-1/2 flex justify-between">
-//               <div className="flex items-center gap-2">
-//                 <p className="min-w-2" h-2 rounded-full bg-green-500></p>
-//                 <p className="text-sm md:text-base"></p>
+
+//               <div>
+//                 <p className='text-sm sm:text-[15px]'>Items : {order.items.length}</p>
+//                 <p className='mt-3'>Method : {order.paymentMethod}</p>
+//                 <p>Payment : {order.payment ? "Done" : "Pending"}</p>
+//                 <p>Date : {new Date(order.date).toLocaleDateString()}</p>
 //               </div>
-//               <button className="border px-4 py-2 text-sm font-medium rounded-sm">
-//                 Track Order
-//               </button>
+//               <p className='text-sm sm:text-[15px]'>{currency}{order.amount}</p>
+//               <select onChange={(event)=>statusHandler(event, order._id)} value={order.status}  className='text-black p-2 font-semibold'>
+//                 <option value="Order Placed">Order Placed</option>
+//                 <option value="Packing">Packing</option>
+//                 <option value="Shipped">Shipped</option>
+//                 <option value="Out for delivery">Out for delivery</option>
+//                 <option value="Delivered">Delivered</option>
+//               </select>
 //             </div>
-//           </div>
-//         ))}
+//           ))
+//         }
 //       </div>
 //     </div>
-//   );
-// };
+//   )
+// }
 
-// export default Orders;
-
-import React, { useContext } from "react";
-import { ShopContext } from "../context/ShopContext";
-
-const Orders = () => {
-  const { orderData } = useContext(ShopContext);
-
-  if (!orderData) return <div>No order data available</div>;
-
-  const { address, amount, paymentMethod, items } = orderData;
-
-  return (
-    <div className="order-page">
-      <h1>Order Summary</h1>
-      <h2>Shipping Address</h2>
-      <p>{address.firstName} {address.lastName}</p>
-      <p>{address.street}, {address.city}, {address.state}, {address.zipcode}, {address.country}</p>
-      <p>{address.phone}</p>
-      <p>{address.email}</p>
-
-      <h2>Payment Method</h2>
-      <p>{paymentMethod}</p>
-
-      <h2>Order Details</h2>
-      <ul>
-        {items.map((item, index) => (
-          <li key={index}>{item.name} - {item.price}</li>
-        ))}
-      </ul>
-
-      <h2>Total Amount: {amount}</h2>
-    </div>
-  );
-};
-
-export default Orders;
+// export default Orders

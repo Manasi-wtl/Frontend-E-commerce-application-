@@ -91,19 +91,17 @@
 // export default AdminPage;
 
 
-import { BarChart, PlusCircle, ShoppingBasket, CalendarArrowUp } from "lucide-react";
-import React, { useState } from "react";
-import CreateProductForm from "../components/CreateProductForm";  // Ensure this is the correct import path
-import ProductsList from "../components/ProductsList";  // Ensure this is the correct import path
-import AnalyticsTab from "../components/AnalyticsTab";  // Ensure this is the correct import path
-import Orders from "../components/Orders";  // Correct import of Orders component
+import { BarChart, PlusCircle, ShoppingBasket } from "lucide-react";
+import { useState } from "react";
+import CreateProductForm from "../components/CreateProductForm";
+import ProductsList from "../components/ProductsList";
+import AnalyticsTab from "../components/AnalyticsTab";
 import "../pages/CSS/AdminPage.css";
 
 const tabs = [
   { id: "create", label: "Create Product", icon: PlusCircle },
   { id: "products", label: "Products", icon: ShoppingBasket },
   { id: "analytics", label: "Analytics", icon: BarChart },
-  { id: "orders", label: "Orders", icon: CalendarArrowUp  }
 ];
 
 const AdminPage = () => {
@@ -127,11 +125,6 @@ const AdminPage = () => {
     setProducts((prevProducts) => prevProducts.filter((product) => product.id !== id));
   };
 
-  // You can replace the slice functionality here with a filter or loop logic
-  const getFirstNProducts = (n) => {
-    return products.filter((product, index) => index < n);  // Get first n products
-  };
-
   return (
     <div className="admin-page">
       <div className="tabs">
@@ -148,15 +141,9 @@ const AdminPage = () => {
       </div>
 
       {activeTab === "create" && <CreateProductForm onAddProduct={handleAddProduct} />}
-      {activeTab === "products" && (
-        <ProductsList
-          products={products}
-          onEditProduct={handleEditProduct}
-          onDeleteProduct={handleDeleteProduct}
-        />
-      )}
+      {activeTab === "products" && <ProductsList products={products}  onEditProduct={handleEditProduct}
+        onDeleteProduct={handleDeleteProduct}/>}
       {activeTab === "analytics" && <AnalyticsTab products={products} />}
-      {activeTab === "orders" && <Orders products={getFirstNProducts(5)} />} {/* Use modified function to pass first 5 products */}
     </div>
   );
 };

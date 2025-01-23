@@ -205,13 +205,14 @@ const ProductDisplay = () => {
               <div
                 key={size}
                 onClick={() => setSelectedSize(size)}
-                className={selectedSize === size ? 'selected' : ''}
+                className={`size-box ${selectedSize === size ? 'selected' : ''}`}
               >
                 {size}
               </div>
             ))}
           </div>
         </div>
+
         <button onClick={handleAddToCart}>Add to Cart</button>
       </div>
     </div>
