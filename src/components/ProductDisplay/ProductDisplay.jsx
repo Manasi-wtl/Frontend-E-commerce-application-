@@ -1,180 +1,64 @@
-// import React, { useState, useContext } from 'react';
-// import { useLocation } from 'react-router-dom';
-// import './ProductDisplay.css';
-// import { ShopContext } from '../../context/ShopContext';
-
-// const ProductDisplay = () => {
-//   const { state } = useLocation(); // Access passed state
-//   const product = state?.product; // Safely access product
-
-//   // Hooks must be called unconditionally
-//   const { addToCart } = useContext(ShopContext);
-//   const [selectedSize, setSelectedSize] = useState('');
-//   const [mainImage, setMainImage] = useState(product?.images[0] || ''); // Fallback to an empty string if product is undefined
-
-//   // Early return for missing product
-//   if (!product) {
-//     return <div>Product not found.</div>;
-//   }
-
-//   const handleAddToCart = () => {
-//     if (!selectedSize) {
-//       alert('Please select a size before adding to cart.');
-//       return;
-//     }
-//     addToCart(product.id, selectedSize);
-//     alert('Product added to cart!');
-//   };
-
-//   return (
-//     <div className="productdisplay">
-//       <div className="productdisplay-left">
-//         <div className="productdisplay-img-list">
-//           {product.images.map((img, index) => (
-//             <img
-//               key={index}
-//               src={img}
-//               alt={`Product ${index + 1}`}
-//               onClick={() => setMainImage(img)} // Update main image on click
-//             />
-//           ))}
-//         </div>
-//         <div className="productdisplay-img">
-//           <img className="productdisplay-main-img" src={mainImage} alt={product.name} />
-//         </div>
-//       </div>
-//       <div className="productdisplay-right">
-//         <h2>{product.name}</h2>
-//         <h4>Category : {product.category}</h4>
-//         <div className="productdisplay-right-prices">
-//           <div className="productdisplay-right-price-new">Rs {product.price}</div>
-//           <div className="productdisplay-right-price-old">Rs {product.oldPrice}</div>
-//         </div>
-//         <div className="productdisplay-right-size">
-//           <h2>Select Size</h2>
-//           <div className="productdisplay-right-sizes">
-//             {['S', 'M', 'L', 'XL', 'XXL'].map((size) => (
-//               <div
-//                 key={size}
-//                 onClick={() => setSelectedSize(size)}
-//                 className={selectedSize === size ? 'selected' : ''}
-//               >
-//                 {size}
-//               </div>
-//             ))}
-//           </div>
-//         </div>
-//         <button onClick={handleAddToCart}>Add to Cart</button>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default ProductDisplay;
-
-
-
-// import React, { useContext, useState,useEffect } from "react";
-// import "./ProductDisplay.css";
-// import { ShopContext } from "../../context/ShopContext";
-
-// const ProductDisplay = ({ product }) => {
-//   const { addToCart,products } = useContext(ShopContext);
-//   const [selectedSize, setSelectedSize] = useState("");
-
-//   console.log("product ", product); 
-//       console.log("products ", products);
-
-//       if (!product) {
-//         return <p>Loading products...</p>;
-//       }
-
-//   const handleAddToCart = () => {
-//     if (!selectedSize) {
-//       alert("Please select a size before adding to cart.");
-//       return;
-//     }
-//     addToCart(product.id, selectedSize);
-//   };
-
-//   return (
-//     <div className="productdisplay">
-//       <div className="productdisplay-left">
-//       <div className="productdisplay-img-list">
-//            {/* <img src={product.images[0]} alt="" /> */}
-//            {/* <img src={product.image} alt="" />
-//            <img src={product.image} alt="" />
-//            <img src={product.image} alt="" /> */}
-//         </div>
-//         <div className="productdisplay-img">
-//           {/* <img className="productdisplay-main-img" src={product.images[0]} alt={product.name} /> */}
-//         </div>
-//       </div>
-//       <div className="productdisplay-right">
-//         <h1>{product.name}</h1>
-//         <div className="productdisplay-right-prices">
-//           <div className="productdisplay-right-price-new">Rs {product.new_price}</div>
-//         </div>
-//         <div className="productdisplay-right-size">
-//           <h2>Select Size</h2>
-//           <div className="productdisplay-right-sizes">
-//             {["S", "M", "L", "XL", "XXL"].map((size) => (
-//               <div
-//                 key={size}
-//                 onClick={() => setSelectedSize(size)}
-//                 className={`size-box ${selectedSize === size ? "selected" : ""}`}
-
-//                 //className={selectedSize === size ? "selected" : ""}
-//               >
-//                 {size}
-//               </div>
-//             ))}
-//           </div>
-//         </div>
-//         <button onClick={handleAddToCart}>Add to Cart</button>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default ProductDisplay;
-
-
-
-
-
-
-
-
-import React, { useState, useContext } from 'react';
-import { useLocation } from 'react-router-dom';
-import './ProductDisplay.css';
-import { ShopContext } from '../../context/ShopContext';
+import React, { useState, useContext, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom"; // Import useNavigate
+import "./ProductDisplay.css";
+import { ShopContext } from "../../context/ShopContext";
+import { toast, ToastContainer } from "react-toastify"; // Import Toastify
+import "react-toastify/dist/ReactToastify.css"; // Import Toastify CSS
+const colors = require('../ProductDisplay/colorPalette.js');
 
 const ProductDisplay = () => {
   const { state } = useLocation(); // Access passed state
   const product = state?.product; // Safely access product
 
-  // Hooks must be called unconditionally
   const { addToCart } = useContext(ShopContext);
-  const [selectedSize, setSelectedSize] = useState('');
-  const [mainImage, setMainImage] = useState(product?.images[0] || ''); // Fallback to an empty string if product is undefined
+  const [selectedSize, setSelectedSize] = useState("");
+  const [mainImage, setMainImage] = useState(product?.images[0] || ""); // Fallback to an empty string if product is undefined
+  const navigate = useNavigate(); // Initialize useNavigate
+  const colorPalette = {colors};
 
-  // Early return for missing product
+  useEffect(() => {
+    window.scrollTo(0, 0); // Scrolls to the top-left corner of the page
+  }, []);
+
   if (!product) {
     return <div>Product not found.</div>;
   }
 
   const handleAddToCart = () => {
     if (!selectedSize) {
-      alert('Please select a size before adding to cart.');
+      toast.error("Please select a size before adding to cart.", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
       return;
     }
+
     addToCart(product._id, selectedSize);
-    alert('Product added to cart!');
+
+    // Show success toast notification
+    toast.success("Product added to cart!", {
+      position: "top-right",
+      autoClose: 3000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+    });
+
+    // Navigate to cart page after 1 second
+    setTimeout(() => {
+      navigate("/cart"); // Navigate to the cart page
+    }, 1000);
   };
 
   return (
+<<<<<<< HEAD
     <div className="productdisplay">
       <div className="productdisplay-left">
         <div className="productdisplay-img-list">
@@ -209,13 +93,96 @@ const ProductDisplay = () => {
               >
                 {size}
               </div>
+=======
+    <>
+      <div className="productdisplay">
+        <ToastContainer />{" "}
+        {/* Add ToastContainer for displaying toast messages */}
+        <div className="productdisplay-left">
+          <div className="productdisplay-img-list">
+            {product.images.map((img, index) => (
+              <img
+                key={index}
+                src={img}
+                alt={`Product ${index + 1}`}
+                onClick={() => setMainImage(img)} // Update main image on click
+              />
+>>>>>>> 8455e46024ef807530d2b4b829cc5ef72ab4da18
             ))}
           </div>
+          <div className="productdisplay-img">
+            <img
+              className="productdisplay-main-img"
+              src={mainImage}
+              alt={product.name}
+            />
+          </div>
         </div>
+        <div className="productdisplay-right">
+          <h2>{product.name}</h2>
+          <br />
+          <p style={{ textAlign: "justify", fontFamily: "Georgia, serif" }}>
+            {product.description}
+          </p>
+          <div className="productdisplay-right-prices">
+            <p>Price :</p>
+            <div className="productdisplay-right-price-new">
+              Rs {product.price}
+            </div>
+            <div className="productdisplay-right-price-old">
+              Rs {product.oldPrice}
+            </div>
+          </div>
+          <div className="productdisplay-right-size">
+            <h2>Available Colors</h2>
+            <div className="productdisplay-right-colors">
+              {product.availableColors.map((color, index) => {
+                const mappedColor = colorPalette[color.toLowerCase()] || color; // Use mapped color or raw value
+                return (
+                  <div
+                    key={index}
+                    className="color-circle"
+                    style={{
+                      backgroundColor: mappedColor, // Use the mapped or raw color
+                    }}
+                    title={color} // Show original color name as tooltip
+                  ></div>
+                );
+              })}
+            </div>
+          </div><br/>
+          <div className="productdisplay-right-size">
+            <h2>Select Size</h2>
+            <div className="productdisplay-right-sizes">
+              {["S", "M", "L", "XL", "XXL"].map((size) => (
+                <div
+                  key={size}
+                  onClick={() => setSelectedSize(size)}
+                  className={selectedSize === size ? "selected" : ""}
+                >
+                  {size}
+                </div>
+              ))}
+            </div>
+          </div>
+          <button onClick={handleAddToCart}>Add to Cart</button>
+        </div>
+<<<<<<< HEAD
 
         <button onClick={handleAddToCart}>Add to Cart</button>
+=======
+>>>>>>> 8455e46024ef807530d2b4b829cc5ef72ab4da18
       </div>
-    </div>
+      <div className="descriptionbox">
+        <div className="descriptionbox-navigator">
+          <div className="descriptionbox-nav-box">Description</div>
+          <div className="descriptionbox-nav-box fade">Reviews (122)</div>
+        </div>
+        <div className="descriptionbox-description" style={{textAlign:"justify"}}>
+          <p>{product.description}</p>
+        </div>
+      </div>
+    </>
   );
 };
 

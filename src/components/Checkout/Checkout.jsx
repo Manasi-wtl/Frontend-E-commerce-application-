@@ -10,10 +10,15 @@ import { BASEURL } from "../../config";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 const Checkout = () => {
+<<<<<<< HEAD
   const navigate = useNavigate(); // Initialize navigate
   const [method, setMethod] = useState('Cash on Delivery');
 
   const { cartItems, delivery_fee, setCartItems,getTotalCartAmount, products,token } = useContext(ShopContext);
+=======
+  // eslint-disable-next-line no-unused-vars
+  const { cartItems, getTotalCartAmount } = useContext(ShopContext);
+>>>>>>> 8455e46024ef807530d2b4b829cc5ef72ab4da18
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",

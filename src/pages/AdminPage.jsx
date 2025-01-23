@@ -1,151 +1,119 @@
-// import { BarChart, PlusCircle, ShoppingBasket } from "lucide-react";
-// import { useEffect, useState } from "react";
-// import { motion } from "framer-motion";
-// import CreateProductForm from "../components/CreateProductForm";
-// import ProductsList from "../components/ProductsList";
-// import AnalyticsTab from "../components/AnalyticsTab";
-// import "../pages/CSS/AdminPage.css"
+import React, { useState, useContext, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate for redirection
+import '../pages/CSS/AdminPage.css';
+import { AuthContext } from '../context/AuthContext'; // Ensure you have AuthContext imported
+import AdminAddProduct from './AdminAddProduct'; // Import the AdminAddProduct component
+import AdminProductlist from './AdminProductlist'; // Import the AdminProductlist component
+import AdminNavbar from '../components/Navbar/AdminNavbar';
+import AdminOrders from './AdminOrders'; // Import the AdminOrders component
 
-// // Static data
-// const initialProducts = [
-//   {
-//     id: 1,
-//     name: "Product 1",
-//     category: "Category 1",
-//     price: 100,
-//     image: "/assets/product1.png",
-//   },
-//   {
-//     id: 2,
-//     name: "Product 2",
-//     category: "Category 2",
-//     price: 200,
-//     image: "/assets/product2.png",
-//   },
-//   {
-//     id: 3,
-//     name: "Product 3",
-//     category: "Category 1",
-//     price: 150,
-//     image: "/assets/product3.png",
-//   },
-// ];
+const Dashboard = () => {
+  const { user, token, logout } = useContext(AuthContext); // Destructure logout from AuthContext
+  const navigate = useNavigate(); // Initialize the useNavigate hook
 
-// const tabs = [
-//   { id: "create", label: "Create Product", icon: PlusCircle },
-//   { id: "products", label: "Products", icon: ShoppingBasket },
-//   { id: "analytics", label: "Analytics", icon: BarChart },
-// ];
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const [isDropdownOpen, setDropdownOpen] = useState(false); // Track dropdown state for Products
+  const [selectedOption, setSelectedOption] = useState('Dashboard'); // Set default to 'Dashboard'
+  const [srno, setSrno] = useState(1); // Track srno value
+  const [totalProducts, setTotalProducts] = useState(0); // Track the total number of products
 
-// const AdminPage = () => {
-//   const [activeTab, setActiveTab] = useState("create");
-//   const [products, setProducts] = useState(initialProducts);
-
-//   useEffect(() => {
-//     // Replace API call with static data logic
-//     // Static data is already loaded into the state as 'products'
-//   }, []);
-
-//   const handleAddProduct = (newProduct) => {
-//     const productWithId = { ...newProduct, id: products.length + 1 };
-//     setProducts([...products, productWithId]);
-//   };
-
-//   return (
-//     <div className="min-h-screen relative overflow-hidden">
-//       <div className="relative z-10 container mx-auto px-4 py-16">
-//         <motion.h1
-//           className="text-4xl font-bold mb-8 text-emerald-400 text-center"
-//           initial={{ opacity: 0, y: -20 }}
-//           animate={{ opacity: 1, y: 0 }}
-//           transition={{ duration: 0.8 }}
-//         >
-//           Admin Dashboard
-//         </motion.h1>
-
-//         <div className="flex justify-center mb-8">
-//           {tabs.map((tab) => (
-//             <button
-//               key={tab.id}
-//               onClick={() => setActiveTab(tab.id)}
-//               className={`flex items-center px-4 py-2 mx-2 rounded-md transition-colors duration-200 ${
-//                 activeTab === tab.id
-//                   ? "bg-emerald-600 text-white"
-//                   : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-//               }`}
-//             >
-//               <tab.icon className="mr-2 h-5 w-5" />
-//               {tab.label}
-//             </button>
-//           ))}
-//         </div>
-
-//         {activeTab === "create" && <CreateProductForm onAddProduct={handleAddProduct} />}
-//         {activeTab === "products" && <ProductsList products={products} />}
-//         {activeTab === "analytics" && <AnalyticsTab products={products} />}
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default AdminPage;
-
-
-import { BarChart, PlusCircle, ShoppingBasket } from "lucide-react";
-import { useState } from "react";
-import CreateProductForm from "../components/CreateProductForm";
-import ProductsList from "../components/ProductsList";
-import AnalyticsTab from "../components/AnalyticsTab";
-import "../pages/CSS/AdminPage.css";
-
-const tabs = [
-  { id: "create", label: "Create Product", icon: PlusCircle },
-  { id: "products", label: "Products", icon: ShoppingBasket },
-  { id: "analytics", label: "Analytics", icon: BarChart },
-];
-
-const AdminPage = () => {
-  const [activeTab, setActiveTab] = useState("create");
-  const [products, setProducts] = useState([]);
-
-  const handleAddProduct = (newProduct) => {
-    const productWithId = { ...newProduct, id: Date.now() }; // Ensure unique ID
-    setProducts((prevProducts) => [...prevProducts, productWithId]);
+  const toggleSidebar = () => {
+    setSidebarOpen(!isSidebarOpen); // Toggle the sidebar visibility
   };
 
-  const handleEditProduct = (updatedProduct) => {
-    setProducts((prevProducts) =>
-      prevProducts.map((product) =>
-        product.id === updatedProduct.id ? updatedProduct : product
-      )
-    );
+  const toggleDropdown = () => {
+    setDropdownOpen(!isDropdownOpen); // Toggle the dropdown for Products
   };
 
-  const handleDeleteProduct = (id) => {
-    setProducts((prevProducts) => prevProducts.filter((product) => product.id !== id));
+  const handleMenuClick = (option) => {
+    setSelectedOption(option);
+    setSidebarOpen(false); // Close the sidebar after selecting an option
   };
+
+  const updateTotalProducts = (count) => {
+    setTotalProducts(count); // Update totalProducts when called from AdminProductlist
+  };
+
+  const handleLogoutClick = () => {
+    logout(); // Call logout function from AuthContext
+    navigate("/login"); // Redirect to login page after logout
+  };
+
+  useEffect(() => {
+    // Redirect to login page if the user is not authenticated
+    if (!token) {
+      navigate('/login'); // Redirect to the login page
+    }
+  }, [token, navigate]);
+
+  // If the user is not authenticated, render a loading screen while redirecting
+  if (!token) {
+    return <div>Loading...</div>; // You can show a loading screen or message while redirecting
+  }
 
   return (
-    <div className="admin-page">
-      <div className="tabs">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`tab-button ${activeTab === tab.id ? "active" : ""}`}
-          >
-            <tab.icon />
-            {tab.label}
-          </button>
-        ))}
-      </div>
+    <>
+      <AdminNavbar />
+      <div className="dashboard-container">
+        <div className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
+          <div className="sidebar-logo">Admin Panel</div>
+          <ul className="sidebar-menu">
+            <li onClick={() => handleMenuClick('Dashboard')}>Dashboard</li>
+            <li>
+              Products
+              <span
+                className={`dropdown-icon ${isDropdownOpen ? 'open' : ''}`}
+                onClick={toggleDropdown}
+              >
+                &#9660;
+              </span>
+              <ul className={`submenu ${isDropdownOpen ? 'open' : ''}`}>
+                <li onClick={() => handleMenuClick('AddProduct')}>Add Product</li>
+                <li onClick={() => handleMenuClick('ListProducts')}>List of Products</li>
+              </ul>
+            </li>
+            <li onClick={() => handleMenuClick('Orders')}>Orders</li>
+            <li onClick={handleLogoutClick}>Logout</li>
+          </ul>
+        </div>
 
-      {activeTab === "create" && <CreateProductForm onAddProduct={handleAddProduct} />}
-      {activeTab === "products" && <ProductsList products={products}  onEditProduct={handleEditProduct}
-        onDeleteProduct={handleDeleteProduct}/>}
-      {activeTab === "analytics" && <AnalyticsTab products={products} />}
-    </div>
+        <div className="hamburger-menu" onClick={toggleSidebar}>
+          &#9776;
+        </div>
+
+        <div className="main-content">
+          {selectedOption === 'Dashboard' && (
+            <section className="stats-cards">
+              <div className="stat-card">
+                <h3>Total Sales</h3>
+                <p>Rs.5,230</p>
+              </div>
+              <div className="stat-card">
+                <h3>Total Products</h3>
+                <p>{totalProducts}</p> {/* Display total products */}
+              </div>
+              <div className="stat-card">
+                <h3>Total Orders</h3>
+                <p>89</p>
+              </div>
+              <div className="stat-card">
+                <h3>Total Users</h3>
+                <p>350</p>
+              </div>
+            </section>
+          )}
+
+          {selectedOption === 'AddProduct' && <AdminAddProduct srno={srno} />} {/* Pass srno to AdminAddProduct */}
+
+          {selectedOption === 'ListProducts' && (
+            <AdminProductlist updateTotalProducts={updateTotalProducts} srno={srno} /> // Pass updateTotalProducts function to AdminProductlist
+          )}
+
+          {selectedOption === 'Orders' && <AdminOrders />} {/* Render AdminOrders when 'Orders' is selected */}
+        </div>
+      </div>
+    </>
   );
 };
 
-export default AdminPage;
+export default Dashboard;

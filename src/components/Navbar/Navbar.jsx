@@ -1,146 +1,23 @@
-// import React, { useContext, useState } from "react";
-// import "./Navbar.css";
-// import logo from "../Assets/logo.png";
-// import cart_icon from "../Assets/cart_icon.png";
-// import { Link } from "react-router-dom";
-// import { useNavigate } from "react-router-dom";
-// import { ShopContext } from "../../context/ShopContext";
-// import { motion } from "framer-motion";
-
-// const Navbar = () => {
-//   const [menu, setMenu] = useState("shop");
-//   const { getTotalCartItems } = useContext(ShopContext);
-//   const [searchInput, setSearchInput] = useState('')
-//   const {updateSearchTerm} = useContext(ShopContext)
-//   const navigate = useNavigate();
-
-//   const handleLoginClick = () => {
-//     navigate("/signup");
-//   };
-
-//   const handleSearch = () =>{
-//     updateSearchTerm(searchInput)
-//   }
-
-//   return (
-//     <motion.div
-//       className="navbar"
-//       initial={{ y: -100 }}
-//       animate={{ y: 0 }}
-//       transition={{ type: "spring", stiffness: 150, damping: 25 }}
-//     >
-//       <div className="nav-logo">
-//         <motion.img
-//           src={logo}
-//           alt="Logo"
-//           initial={{ scale: 0.8 }}
-//           animate={{ scale: 1 }}
-//           transition={{ duration: 0.5, ease: "easeInOut" }}
-//         />
-//         <p>SILKSEW</p>
-//       </div>
-
-//       <div className="search-box">
-//         <form action="">
-//           <input type="text" name="search" value={searchInput} onChange={(e) => setSearchInput(e.target.value)} id="srch" placeholder="Search" />
-//           <button onClick={handleSearch} type="submit">
-//             <i className="fa fa-search"></i>
-//           </button>
-//         </form>
-//       </div>
-
-//       <ul className="nav-menu">
-//         <li
-//           onClick={() => {
-//             setMenu("shop");
-//           }}
-//         >
-//           <Link style={{ textDecoration: "none" }} to="/">
-//             Shop
-//           </Link>
-//           {menu === "shop" ? <motion.hr layoutId="underline" /> : <></>}
-//         </li>
-//         <li
-//           onClick={() => {
-//             setMenu("mens");
-//           }}
-//         >
-//           <Link style={{ textDecoration: "none" }} to="/mens">
-//             Men
-//           </Link>
-//           {menu === "mens" ? <motion.hr layoutId="underline" /> : <></>}
-//         </li>
-//         <li
-//           onClick={() => {
-//             setMenu("womens");
-//           }}
-//         >
-//           <Link style={{ textDecoration: "none" }} to="/womens">
-//             Women
-//           </Link>
-//           {menu === "womens" ? <motion.hr layoutId="underline" /> : <></>}
-//         </li>
-//         <li
-//           onClick={() => {
-//             setMenu("kids");
-//           }}
-//         >
-//           <Link style={{ textDecoration: "none" }} to="/kids">
-//             Kids
-//           </Link>
-//           {menu === "kids" ? <motion.hr layoutId="underline" /> : <></>}
-//         </li>
-//       </ul>
-
-//       <div className="nav-login-cart">
-//         <motion.button
-//           whileHover={{
-//             backgroundColor: "#38bdf8", // Light Blue
-//             scale: 1.1,
-//             boxShadow: "0px 4px 15px rgba(56, 189, 248, 0.5)",
-//           }}
-//           whileTap={{ scale: 0.95 }}
-//           onClick={handleLoginClick}
-//           className="login-btn"
-//         >
-//           Login
-//         </motion.button>
-
-//         <Link to="/cart">
-//           <motion.img
-//             src={cart_icon}
-//             alt="Cart Icon"
-//             whileHover={{ rotate: 20 }}
-//             className="cart-icon"
-//           />
-//         </Link>
-
-//         <div className="nav-cart-count">{getTotalCartItems()}</div>
-//       </div>
-//     </motion.div>
-//   );
-// };
-
-// export default Navbar;
-
-
-import React, { useContext, useState,useEffect } from "react";
-import "./Navbar.css";
-import logo from "../Assets/logo.png";
-import cart_icon from "../Assets/cart_icon.png";
-import { Link } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
-import { ShopContext } from "../../context/ShopContext";
-import { motion } from "framer-motion";
+import React, { useState, useContext, useEffect } from "react"
+import { Link, useNavigate } from "react-router-dom"
+import { ShopContext } from "../../context/ShopContext"
+import { AuthContext } from "../../context/AuthContext"
+import logo from "../Assets/logo.png"
+import cart_icon from "../Assets/cart_icon.png"
+import profile_icon from "../Assets/profile_icon.png"
 
 const Navbar = () => {
-  const [menu, setMenu] = useState("shop");
-  const { getTotalCartItems, updateSearchTerm } = useContext(ShopContext);
-  const [searchInput, setSearchInput] = useState('');
-  const [cartItemCount, setCartItemCount] = useState(0);
-  const navigate = useNavigate();
+  const [menu, setMenu] = useState("shop")
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const { cartItems } = useContext(ShopContext)
+  const { user, logout } = useContext(AuthContext)
+  const navigate = useNavigate()
+  const [searchQuery, setSearchQuery] = useState("")
+  const [isMobileView, setIsMobileView] = useState(false)
 
   useEffect(() => {
+<<<<<<< HEAD
     const fetchCartItems = async () => {
       try {
         const { items, totalItems } = await getTotalCartItems(); // Await the async function
@@ -151,126 +28,124 @@ const Navbar = () => {
         setCartItemCount(0); // Fallback in case of error
       }
     };
+=======
+    const handleResize = () => {
+      setIsMobileView(window.innerWidth < 768)
+    }
+>>>>>>> 8455e46024ef807530d2b4b829cc5ef72ab4da18
 
-    fetchCartItems();
-  }, [getTotalCartItems]);
+    handleResize()
+    window.addEventListener("resize", handleResize)
 
-  const handleLoginClick = () => {
-    navigate("/signup");
-  };
+    return () => {
+      window.removeEventListener("resize", handleResize)
+    }
+  }, [])
 
-  const handleSearch = (event) => {
-    event.preventDefault();  // Prevent page reload on form submit
-    updateSearchTerm(searchInput);  // Update the search term in context
-  };
+  const handleLogoutClick = () => {
+    logout()
+    navigate("/login")
+  }
+
+  const handleSearch = (e) => {
+    e.preventDefault()
+    if (searchQuery.trim()) {
+      navigate(`/search?query=${searchQuery}`)
+    }
+  }
+
+  const calculateTotalCartItems = () => {
+    return cartItems.reduce((total, item) => total + item.quantity, 0)
+  }
+
+  const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen)
+  const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen)
+
+  const handleMenuClick = (menuOption) => {
+    setMenu(menuOption)
+    if (isMobileView) {
+      setIsMobileMenuOpen(false)
+    }
+  }
 
   return (
-    <motion.div
-      className="navbar"
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ type: "spring", stiffness: 150, damping: 25 }}
-    >
+    <nav className="navbar">
       <div className="nav-logo">
-        <motion.img
-          src={logo}
-          alt="Logo"
-          initial={{ scale: 0.8 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 0.5, ease: "easeInOut" }}
-        />
+        <img src={logo || "/placeholder.svg"} alt="Logo" />
         <p>SILKSEW</p>
       </div>
 
-      <div className="search-box">
-        <form onSubmit={handleSearch}>  {/* Add onSubmit handler */}
-          <input
-            type="text"
-            name="search"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            id="srch"
-            placeholder="Search"
-          />
-          <button type="submit">
-            <i className="fa fa-search"></i>
-          </button>
-        </form>
+      <div className={`nav-menu ${isMobileMenuOpen ? "active" : ""}`}>
+        <ul>
+          <li onClick={() => handleMenuClick("shop")}>
+            <Link to="/">Shop</Link>
+            {menu === "shop" && <hr />}
+          </li>
+          <li onClick={() => handleMenuClick("mens")}>
+            <Link to="/mens">Men</Link>
+            {menu === "mens" && <hr />}
+          </li>
+          <li onClick={() => handleMenuClick("womens")}>
+            <Link to="/womens">Women</Link>
+            {menu === "womens" && <hr />}
+          </li>
+          <li onClick={() => handleMenuClick("kids")}>
+            <Link to="/kids">Kids</Link>
+            {menu === "kids" && <hr />}
+          </li>
+        </ul>
+
+        <div className="nav-search-bar">
+          <form onSubmit={handleSearch}>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search products"
+            />
+            <button type="submit">Search</button>
+          </form>
+        </div>
       </div>
 
-      <ul className="nav-menu">
-        <li
-          onClick={() => {
-            setMenu("shop");
-          }}
-        >
-          <Link style={{ textDecoration: "none" }} to="/">
-            Shop
+      <div className="nav-right">
+        <div className="nav-login-cart">
+          <Link to="/cart" className="cart-icon-wrapper">
+            <img src={cart_icon || "/placeholder.svg"} alt="Cart" className="cart-icon" />
+            {calculateTotalCartItems() > 0 && <div className="cart-item-count">{calculateTotalCartItems()}</div>}
           </Link>
-          {menu === "shop" ? <motion.hr layoutId="underline" /> : <></>}
-        </li>
-        <li
-          onClick={() => {
-            setMenu("mens");
-          }}
-        >
-          <Link style={{ textDecoration: "none" }} to="/mens">
-            Men
-          </Link>
-          {menu === "mens" ? <motion.hr layoutId="underline" /> : <></>}
-        </li>
-        <li
-          onClick={() => {
-            setMenu("womens");
-          }}
-        >
-          <Link style={{ textDecoration: "none" }} to="/womens">
-            Women
-          </Link>
-          {menu === "womens" ? <motion.hr layoutId="underline" /> : <></>}
-        </li>
-        <li
-          onClick={() => {
-            setMenu("kids");
-          }}
-        >
-          <Link style={{ textDecoration: "none" }} to="/kids">
-            Kids
-          </Link>
-          {menu === "kids" ? <motion.hr layoutId="underline" /> : <></>}
-        </li>
-      </ul>
 
-      <div className="nav-login-cart">
-        <motion.button
-          whileHover={{
-            backgroundColor: "#38bdf8", // Light Blue
-            scale: 1.1,
-            boxShadow: "0px 4px 15px rgba(56, 189, 248, 0.5)",
-          }}
-          whileTap={{ scale: 0.95 }}
-          onClick={handleLoginClick}
-          className="login-btn"
-        >
-          Login
-        </motion.button>
-
-        <Link to="/cart">
-        {/* ({getTotalCartItems}) */}
-
-          <motion.img
-            src={cart_icon}
-            alt="Cart Icon"
-            whileHover={{ rotate: 20 }}
-            className="cart-icon"
-          />
-         
-        </Link>
-
-        <div className="nav-cart-count">{cartItemCount}</div>
+          {user ? (
+            <div className="profile-info" onClick={toggleDropdown}>
+              <img src={profile_icon || "/placeholder.svg"} alt="Profile" className="profile-icon clickable" />
+              {isDropdownOpen && (
+                <div className="dropdown-menu">
+                  <Link to="/profile" className="dropdown-item">
+                    Profile
+                  </Link>
+                  <div className="dropdown-item" onClick={handleLogoutClick}>
+                    Logout
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <button onClick={() => navigate("/login")} className="login-btn">
+              Login
+            </button>
+          )}
+        </div>
+        <div className="hamburger-wrapper">
+          <div className={`hamburger-menu ${isMobileMenuOpen ? "active" : ""}`} onClick={toggleMobileMenu}>
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </div>
       </div>
-    </motion.div>
-  );
-};
+    </nav>
+  )
+}
 
-export default Navbar;
+export default Navbar
+
